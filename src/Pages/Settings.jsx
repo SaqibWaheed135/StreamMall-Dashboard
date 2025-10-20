@@ -21,7 +21,7 @@ const AdminSettingsPage = () => {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('https://theclipstream-backend.onrender.com/api/settings', {
+      const res = await axios.get('https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSettings(res.data.data || []);
@@ -37,7 +37,7 @@ const AdminSettingsPage = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `https://theclipstream-backend.onrender.com/api/settings/${key}`,
+        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings/${key}`,
         { value: Number(value) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -58,7 +58,7 @@ const AdminSettingsPage = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'https://theclipstream-backend.onrender.com/api/settings/init',
+        'https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings/init',
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

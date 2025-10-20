@@ -11,7 +11,7 @@ export default function UsersList() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("https://theclipstream-backend.onrender.com/api/auth/getUsers");
+      const res = await axios.get("https://streammall-backend-73a4b072d5eb.herokuapp.com/api/auth/getUsers");
       const usersData = Array.isArray(res.data.data) ? res.data.data : res.data;
       setUsers(usersData);
     } catch (err) {
@@ -27,7 +27,7 @@ export default function UsersList() {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`https://theclipstream-backend.onrender.com/api/auth/deleteUser/${userId}`);
+      await axios.delete(`https://streammall-backend-73a4b072d5eb.herokuapp.com/api/auth/deleteUser/${userId}`);
       setUsers((prev) => prev.filter((user) => user._id !== userId));
     } catch (err) {
       console.error("Failed to delete user:", err);

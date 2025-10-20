@@ -17,7 +17,7 @@ export default function ApprovedVideoList() {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await axios.get(
-        'https://theclipstream-backend.onrender.com/api/admin/videos/approved',
+        'https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/videos/approved',
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -42,7 +42,7 @@ export default function ApprovedVideoList() {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await axios.delete(
-        `https://theclipstream-backend.onrender.com/api/videos/admin/deleteVideo/${id}`,
+        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/videos/admin/deleteVideo/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

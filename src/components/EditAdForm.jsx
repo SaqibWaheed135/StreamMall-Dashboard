@@ -20,7 +20,7 @@ export default function EditAdForm() {
   const fetchAdDetails = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await axios.get('https://theclipstream-backend.onrender.com/api/admin/auth/getAd', {
+      const res = await axios.get('https://streammall-backend-73a4b072d5eb.herokuapp.com//api/admin/auth/getAd', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const ad = res.data.data.find(ad => ad._id === id);
@@ -42,7 +42,7 @@ export default function EditAdForm() {
     try {
       const token = localStorage.getItem('adminToken');
       const res = await axios.put(
-        `https://theclipstream-backend.onrender.com/api/admin/auth/getAd/${id}`,
+        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/auth/getAd/${id}`,
         {
           title,
           description,

@@ -26,7 +26,7 @@ export default function AddAdForm() {
         try {
             const token = localStorage.getItem('adminToken');
             const res = await axios.post(
-                'https://theclipstream-backend.onrender.com/api/admin/auth/ad',
+                'https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/auth/ad',
                 formData,
                 {
                     headers: {

@@ -16,7 +16,7 @@ export default function VideoList() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await axios.get('https://theclipstream-backend.onrender.com/api/admin/videos', {
+            const res = await axios.get('https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/videos', {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setVideos(res.data.data || res.data);
@@ -32,7 +32,7 @@ export default function VideoList() {
         if (!window.confirm('Are you sure you want to delete this video?')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            await axios.delete(`https://theclipstream-backend.onrender.com/api/auth/deleteVideo/${id}`, {
+            await axios.delete(`https://streammall-backend-73a4b072d5eb.herokuapp.com/api/auth/deleteVideo/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setVideos((prev) => prev.filter((video) => video._id !== id));
@@ -46,7 +46,7 @@ export default function VideoList() {
     const approveVideo = async (id) => {
         try {
             const token = localStorage.getItem('adminToken');
-            await axios.post(`https://theclipstream-backend.onrender.com/api/admin/videos/approve`,
+            await axios.post(`https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/videos/approve`,
                 { videoId: id },
                 {
                     headers: { Authorization: `Bearer ${token}` },

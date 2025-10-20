@@ -16,7 +16,7 @@ export default function RechargeAdmin() {
   const fetchRecharges = async () => {
     try {
       const res = await axios.get(
-        "https://theclipstream-backend.onrender.com/api/recharges/history",
+        "https://streammall-backend-73a4b072d5eb.herokuapp.com/api/recharges/history",
         { withCredentials: true }
       );
 
@@ -40,7 +40,7 @@ export default function RechargeAdmin() {
 
     try {
       const response = await axios.post(
-        `https://theclipstream-backend.onrender.com/api/recharges/admin/approve/${id}`,
+        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/recharges/admin/approve/${id}`,
         { notes: "Approved by admin" },
         { withCredentials: true }
       );
@@ -74,7 +74,7 @@ export default function RechargeAdmin() {
 
     try {
       const response = await axios.post(
-        `https://theclipstream-backend.onrender.com/api/recharges/admin/reject/${id}`,
+        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/recharges/admin/reject/${id}`,
         { reason },
         { withCredentials: true }
       );

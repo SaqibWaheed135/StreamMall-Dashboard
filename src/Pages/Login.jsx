@@ -23,7 +23,7 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('https://theclipstream-backend.onrender.com/api/admin/admin-login', {
+      const res = await axios.post('https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/admin-login', {
         email,
         password,
       });

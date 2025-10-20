@@ -16,7 +16,7 @@ export default function AdList() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await axios.get('https://theclipstream-backend.onrender.com/api/admin/auth/getAd', {
+      const res = await axios.get('https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/auth/getAd', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAds(res.data.data);
@@ -32,7 +32,7 @@ export default function AdList() {
     if (!window.confirm('Are you sure you want to delete this ad?')) return;
     try {
       const token = localStorage.getItem('adminToken');
-      await axios.delete(`https://theclipstream-backend.onrender.com/api/admin/auth/getAd/${id}`, {
+      await axios.delete(`https://streammall-backend-73a4b072d5eb.herokuapp.com/api/admin/auth/getAd/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAds((prev) => prev.filter((ad) => ad._id !== id));
