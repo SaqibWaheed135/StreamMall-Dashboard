@@ -192,7 +192,7 @@ const LiveOrders = () => {
       )}
 
       {/* Filters and Controls */}
-      <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6">
+      <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 ">
         <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => { setStatusFilter('all'); setCurrentPage(1); }}
