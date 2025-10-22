@@ -182,13 +182,13 @@ const LiveOrders = () => {
             </div>
             <p className="stats-value cancelled-value">{stats.cancelledOrders}</p>
           </div>
-          <div className="stats-card">
+          {/* <div className="stats-card">
             <div className="stats-header">
               <span className="stats-label">Total Revenue</span>
               <TrendingUp className="icon-small" />
             </div>
             <p className="stats-value">{Math.floor(stats.totalRevenue / 100)} coins</p>
-          </div>
+          </div> */}
         </div>
       )}
 
