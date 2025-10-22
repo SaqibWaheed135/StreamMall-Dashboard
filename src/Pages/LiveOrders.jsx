@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Package, TrendingUp, CheckCircle, Clock, XCircle, Download, Eye, MoreVertical } from 'lucide-react';
+import { Package, TrendingUp, CheckCircle, Clock, XCircle, Download, Eye } from 'lucide-react';
+import '../styles/LiveOrders.css';
 
 const LiveOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -79,27 +80,27 @@ const LiveOrders = () => {
       return 0;
     });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-400';
-      case 'pending':
-        return 'text-yellow-400';
-      case 'cancelled':
-        return 'text-red-400';
-      default:
-        return 'text-gray-400';
-    }
-  };
+ const getStatusColor = (status) => {
+  switch (status) {
+    case 'completed':
+      return { color: '#34c759' };
+    case 'pending':
+      return { color: '#f1c40f' };
+    case 'cancelled':
+      return { color: '#e74c3c' };
+    default:
+      return { color: '#9ca3af' };
+  }
+};
 
   const getStatusIcon = (status) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="icon-small" />;
       case 'pending':
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="icon-small" />;
       case 'cancelled':
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="icon-small" />;
       default:
         return null;
     }
@@ -144,139 +145,93 @@ const LiveOrders = () => {
       <h1 className="withdraw-heading">Orders Management</h1>
 
       {error && (
-        <div className="mt-4 bg-red-900/50 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
-          <XCircle className="w-5 h-5 text-red-400" />
-          <p className="text-red-400">{error}</p>
+        <div className="error-message">
+          <XCircle className="icon-small error-icon" />
+          <p>{error}</p>
         </div>
       )}
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400 text-sm">Total Orders</span>
-              <Package className="w-5 h-5 text-gray-400" />
+        <div className="stats-grid">
+          <div className="stats-card">
+            <div className="stats-header">
+              <span className="stats-label">Total Orders</span>
+              <Package className="icon-small" />
             </div>
-            <p className="text-2xl font-bold">{stats.totalOrders}</p>
+            <p className="stats-value">{stats.totalOrders}</p>
           </div>
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400 text-sm">Completed</span>
-              <CheckCircle className="w-5 h-5 text-green-400" />
+          <div className="stats-card">
+            <div className="stats-header">
+              <span className="stats-label">Completed</span>
+              <CheckCircle className="icon-small completed-icon" />
             </div>
-            <p className="text-2xl font-bold text-green-400">{stats.completedOrders}</p>
+            <p className="stats-value completed-value">{stats.completedOrders}</p>
           </div>
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400 text-sm">Pending</span>
-              <Clock className="w-5 h-5 text-yellow-400" />
+          <div className="stats-card">
+            <div className="stats-header">
+              <span className="stats-label">Pending</span>
+              <Clock className="icon-small pending-icon" />
             </div>
-            <p className="text-2xl font-bold text-yellow-400">{stats.pendingOrders}</p>
+            <p className="stats-value pending-value">{stats.pendingOrders}</p>
           </div>
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400 text-sm">Cancelled</span>
-              <XCircle className="w-5 h-5 text-red-400" />
+          <div className="stats-card">
+            <div className="stats-header">
+              <span className="stats-label">Cancelled</span>
+              <XCircle className="icon-small cancelled-icon" />
             </div>
-            <p className="text-2xl font-bold text-red-400">{stats.cancelledOrders}</p>
+            <p className="stats-value cancelled-value">{stats.cancelledOrders}</p>
           </div>
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400 text-sm">Total Revenue</span>
-              <TrendingUp className="w-5 h-5 text-gray-400" />
+          <div className="stats-card">
+            <div className="stats-header">
+              <span className="stats-label">Total Revenue</span>
+              <TrendingUp className="icon-small" />
             </div>
-            <p className="text-2xl font-bold">{Math.floor(stats.totalRevenue / 100)} coins</p>
+            <p className="stats-value">{Math.floor(stats.totalRevenue / 100)} coins</p>
           </div>
         </div>
       )}
 
       {/* Filters and Controls */}
-      <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 ">
-        <div className="flex flex-wrap gap-2 mb-4">
+      <div className="filters-container">
+        <div className="filter-buttons">
           <button
             onClick={() => { setStatusFilter('all'); setCurrentPage(1); }}
-            style={{
-              backgroundColor: statusFilter === 'all' ? '#27ae60' : '#4b5563',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontFamily: 'poppins',
-            }}
+            className={statusFilter === 'all' ? 'filter-button active' : 'filter-button'}
           >
             All Orders
           </button>
           <button
             onClick={() => { setStatusFilter('completed'); setCurrentPage(1); }}
-            style={{
-              backgroundColor: statusFilter === 'completed' ? '#27ae60' : '#4b5563',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontFamily: 'poppins',
-            }}
+            className={statusFilter === 'completed' ? 'filter-button active' : 'filter-button'}
           >
             Completed
           </button>
           <button
             onClick={() => { setStatusFilter('pending'); setCurrentPage(1); }}
-            style={{
-              backgroundColor: statusFilter === 'pending' ? '#f1c40f' : '#4b5563',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontFamily: 'poppins',
-            }}
+            className={statusFilter === 'pending' ? 'filter-button pending' : 'filter-button'}
           >
             Pending
           </button>
           <button
             onClick={() => { setStatusFilter('cancelled'); setCurrentPage(1); }}
-            style={{
-              backgroundColor: statusFilter === 'cancelled' ? '#e74c3c' : '#4b5563',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontFamily: 'poppins',
-            }}
+            className={statusFilter === 'cancelled' ? 'filter-button cancelled' : 'filter-button'}
           >
             Cancelled
           </button>
         </div>
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="filter-controls">
           <input
             type="text"
             placeholder="Search by buyer, product, email, or stream..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              backgroundColor: '#2d3748',
-              color: 'white',
-              border: '1px solid #4b5563',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              fontFamily: 'poppins',
-            }}
+            className="search-input"
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            style={{
-              backgroundColor: '#2d3748',
-              color: 'white',
-              border: '1px solid #4b5563',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              fontFamily: 'poppins',
-            }}
+            className="sort-select"
           >
             <option value="date">Sort by Date</option>
             <option value="value">Sort by Value</option>
@@ -284,17 +239,9 @@ const LiveOrders = () => {
           </select>
           <button
             onClick={exportOrders}
-            style={{
-              backgroundColor: '#27ae60',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontFamily: 'poppins',
-            }}
+            className="export-button"
           >
-            <Download className="w-4 h-4 inline mr-1" />
+            <Download className="icon-small inline" />
             Export CSV
           </button>
         </div>
@@ -306,7 +253,7 @@ const LiveOrders = () => {
       ) : filteredOrders.length === 0 ? (
         <p>No orders found.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="table-container">
           <table className="withdraw-table">
             <thead>
               <tr>
@@ -335,7 +282,7 @@ const LiveOrders = () => {
                   <td className="withdraw-td">{order.streamTitle}</td>
                   <td className="withdraw-td">{order.coinValue} coins</td>
                   <td className="withdraw-td">
-                    <span className={`capitalize ${getStatusColor(order.status)}`}>
+                    <span style={{ display: 'flex', alignItems: 'center', ...getStatusColor(order.status) }}>
                       {getStatusIcon(order.status)} {order.status}
                     </span>
                   </td>
@@ -346,17 +293,9 @@ const LiveOrders = () => {
                         setSelectedOrder(order);
                         setShowDetailsModal(true);
                       }}
-                      style={{
-                        backgroundColor: '#27ae60',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontFamily: 'poppins',
-                      }}
+                      className="view-button"
                     >
-                      <Eye className="w-4 h-4 inline mr-1" />
+                      <Eye className="icon-small inline" />
                       View
                     </button>
                   </td>
@@ -366,48 +305,24 @@ const LiveOrders = () => {
           </table>
 
           {/* Pagination */}
-          <div className="mt-4 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
+          <div className="pagination">
+            <p className="pagination-info">
               Showing {filteredOrders.length} orders
             </p>
-            <div className="flex gap-2">
+            <div className="pagination-controls">
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                style={{
-                  backgroundColor: currentPage === 1 ? '#6b7280' : '#4b5563',
-                  color: 'white',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '5px',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  fontFamily: 'poppins',
-                }}
+                className={currentPage === 1 ? 'pagination-button disabled' : 'pagination-button'}
               >
                 Previous
               </button>
-              <span
-                style={{
-                  backgroundColor: '#4b5563',
-                  color: 'white',
-                  padding: '6px 12px',
-                  borderRadius: '5px',
-                  fontFamily: 'poppins',
-                }}
-              >
+              <span className="pagination-page">
                 Page {currentPage}
               </span>
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
-                style={{
-                  backgroundColor: '#4b5563',
-                  color: 'white',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontFamily: 'poppins',
-                }}
+                className="pagination-button"
               >
                 Next
               </button>
@@ -418,123 +333,108 @@ const LiveOrders = () => {
 
       {/* Details Modal */}
       {showDetailsModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 border border-gray-600 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-600 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">Order Details</h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2 className="modal-title">Order Details</h2>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                style={{
-                  color: '#9ca3af',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1.5rem',
-                }}
+                className="modal-close"
               >
                 ✕
               </button>
             </div>
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="font-bold text-white mb-3">Order Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Order ID:</span>
+            <div className="modal-body">
+              <div className="modal-section">
+                <h3 className="modal-section-title">Order Information</h3>
+                <div className="modal-info">
+                  <div className="info-row">
+                    <span className="info-label">Order ID:</span>
                     <span>{selectedOrder.orderId}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Status:</span>
-                    <span className={`capitalize ${getStatusColor(selectedOrder.status)}`}>
+                  <div className="info-row">
+                    <span className="info-label">Status:</span>
+                    <span style={getStatusColor(selectedOrder.status)}>
                       {selectedOrder.status}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Date:</span>
+                  <div className="info-row">
+                    <span className="info-label">Date:</span>
                     <span>{new Date(selectedOrder.orderedAt).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
-              <div>
-                <h3 className="font-bold text-white mb-3">Product</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Name:</span>
+              <div className="modal-section">
+                <h3 className="modal-section-title">Product</h3>
+                <div className="modal-info">
+                  <div className="info-row">
+                    <span className="info-label">Name:</span>
                     <span>{selectedOrder.productName}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Price:</span>
+                  <div className="info-row">
+                    <span className="info-label">Price:</span>
                     <span>${selectedOrder.productPrice}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Quantity:</span>
+                  <div className="info-row">
+                    <span className="info-label">Quantity:</span>
                     <span>{selectedOrder.quantity}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Total Value:</span>
-                    <span className="font-bold text-yellow-400">{selectedOrder.coinValue} coins</span>
+                  <div className="info-row">
+                    <span className="info-label">Total Value:</span>
+                    <span style={{ color: '#f1c40f', fontWeight: 'bold' }}>{selectedOrder.coinValue} coins</span>
                   </div>
                 </div>
               </div>
-              <div>
-                <h3 className="font-bold text-white mb-3">Buyer Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Username:</span>
+              <div className="modal-section">
+                <h3 className="modal-section-title">Buyer Information</h3>
+                <div className="modal-info">
+                  <div className="info-row">
+                    <span className="info-label">Username:</span>
                     <span>{selectedOrder.buyerUsername}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Email:</span>
-                    <span className="truncate">{selectedOrder.buyerEmail}</span>
+                  <div className="info-row">
+                    <span className="info-label">Email:</span>
+                    <span style={{ wordBreak: 'break-all' }}>{selectedOrder.buyerEmail}</span>
                   </div>
                 </div>
               </div>
-              <div>
-                <h3 className="font-bold text-white mb-3">Stream Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Title:</span>
-                    <span className="truncate">{selectedOrder.streamTitle}</span>
+              <div className="modal-section">
+                <h3 className="modal-section-title">Stream Information</h3>
+                <div className="modal-info">
+                  <div className="info-row">
+                    <span className="info-label">Title:</span>
+                    <span style={{ wordBreak: 'break-all' }}>{selectedOrder.streamTitle}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Streamer:</span>
+                  <div className="info-row">
+                    <span className="info-label">Streamer:</span>
                     <span>{selectedOrder.streamerUsername}</span>
                   </div>
                 </div>
               </div>
               {selectedOrder.deliveryInfo && (
-                <div>
-                  <h3 className="font-bold text-white mb-3">Delivery Address</h3>
-                  <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 space-y-2 text-sm">
-                    <p className="font-medium">
+                <div className="modal-section">
+                  <h3 className="modal-section-title">Delivery Address</h3>
+                  <div className="delivery-info">
+                    <p className="delivery-name">
                       {selectedOrder.deliveryInfo.firstName} {selectedOrder.deliveryInfo.lastName}
                     </p>
-                    <p className="text-gray-300">{selectedOrder.deliveryInfo.address}</p>
-                    <p className="text-gray-300">
+                    <p className="delivery-address">{selectedOrder.deliveryInfo.address}</p>
+                    <p className="delivery-address">
                       {selectedOrder.deliveryInfo.city}, {selectedOrder.deliveryInfo.state} {selectedOrder.deliveryInfo.zipCode}
                     </p>
-                    <p className="text-gray-300">{selectedOrder.deliveryInfo.country}</p>
-                    <div className="pt-2 border-t border-gray-600">
-                      <p className="text-gray-400 text-xs">Email: {selectedOrder.deliveryInfo.email}</p>
-                      <p className="text-gray-400 text-xs">Phone: {selectedOrder.deliveryInfo.phone}</p>
+                    <p className="delivery-address">{selectedOrder.deliveryInfo.country}</p>
+                    <div className="delivery-contact">
+                      <p className="delivery-contact-item">Email: {selectedOrder.deliveryInfo.email}</p>
+                      <p className="delivery-contact-item">Phone: {selectedOrder.deliveryInfo.phone}</p>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-600">
+            <div className="modal-footer">
               <button
                 onClick={() => setShowDetailsModal(false)}
-                style={{
-                  backgroundColor: '#27ae60',
-                  color: 'white',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontFamily: 'poppins',
-                  width: '100%',
-                }}
+                className="modal-close-button"
               >
                 Close
               </button>
