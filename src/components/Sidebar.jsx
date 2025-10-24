@@ -85,7 +85,7 @@ export default function Sidebar() {
                 </ul>
               )}
             </li>
-s          </ul>
+         </ul>
         </nav>
 
         {/* Logout Button */}
