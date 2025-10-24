@@ -16,7 +16,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../assets/logo.png';
 import { useContext, useState } from 'react';
 import { AuthContext } from '../Context/AuthContext';
-import '../styles/Sidebar.css'; // ✅ Import the CSS file
+import '../styles/Sidebar.css'; 
 
 export default function Sidebar() {
   const { logout } = useContext(AuthContext);
@@ -86,8 +86,6 @@ export default function Sidebar() {
                 </ul>
               )}
             </li>
-
-            <li><Link to="/settings"><Settings size={18} /> Settings</Link></li>
           </ul>
         </nav>
 

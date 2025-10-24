@@ -29,7 +29,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <Dashboard />
+                <AdminSettingsPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -146,16 +146,6 @@ function App() {
         />
         <Route path="/ads/edit/:id" element={<EditAdForm />} />
 
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <AdminSettingsPage />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
 
 
       </Routes>

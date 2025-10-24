@@ -1,421 +1,315 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Settings, RefreshCw, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings, Coins, Save, RefreshCw, AlertCircle, CheckCircle, Users, TrendingUp, DollarSign, Gift, XCircle } from 'lucide-react';
+import '../styles/AdminSettings.css';
 
 const AdminSettingsPage = () => {
-  const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingSetting, setEditingSetting] = useState(null);
-  const [editValue, setEditValue] = useState('');
-  const [notification, setNotification] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalReferrals: 0,
+    totalPointsDistributed: 0
+  });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const [settings, setSettings] = useState({
+    referralPoints: 10,
+    signupBonus: 5,
+    dailyLoginBonus: 1,
+    videoUploadBonus: 2,
+    streamViewBonus: 1
+  });
 
-  const showNotification = (message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+  const API_BASE_URL = 'https://streammall-backend-73a4b072d5eb.herokuapp.com/api';
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  };
+
+  const showMessage = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings', {
-        headers: { Authorization: `Bearer ${token}` }
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/admin/settings`, {
+        headers: getAuthHeaders()
       });
-      setSettings(res.data.data || []);
-    } catch (err) {
-      console.error('Error fetching settings:', err);
-      showNotification('Failed to fetch settings', 'error');
+
+      if (response.ok) {
+        const data = await response.json();
+        const settingsObj = {};
+        data.forEach(setting => {
+          settingsObj[setting.key] = setting.value;
+        });
+        setSettings(prev => ({ ...prev, ...settingsObj }));
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      showMessage('error', 'Failed to load settings');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
   const updateSetting = async (key, value) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings/${key}`,
-        { value: Number(value) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showNotification('Setting updated successfully', 'success');
-      fetchSettings();
-      setEditingSetting(null);
-      setEditValue('');
-    } catch (err) {
-      console.error('Error updating setting:', err);
-      showNotification('Failed to update setting', 'error');
+      setSaving(true);
+      const response = await fetch(`${API_BASE_URL}/admin/settings/${key}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ value: Number(value) })
+      });
+
+      if (response.ok) {
+        showMessage('success', `${key} updated successfully!`);
+        await fetchSettings();
+      } else {
+        showMessage('error', 'Failed to update setting');
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      showMessage('error', 'Failed to update setting');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const initializeSettings = async () => {
-    const confirmInit = window.confirm('Are you sure you want to initialize default settings? This will create or update default values.');
-    if (!confirmInit) return;
+  const handleInputChange = (key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        'https://streammall-backend-73a4b072d5eb.herokuapp.com/api/settings/init',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showNotification('Settings initialized successfully', 'success');
-      fetchSettings();
-    } catch (err) {
-      console.error('Error initializing settings:', err);
-      showNotification('Failed to initialize settings', 'error');
+  const handleSave = async (key) => {
+    await updateSetting(key, settings[key]);
+  };
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    for (const [key, value] of Object.entries(settings)) {
+      await updateSetting(key, value);
     }
+    setSaving(false);
   };
 
-  const startEdit = (setting) => {
-    setEditingSetting(setting.key);
-    setEditValue(setting.value);
-  };
+  useEffect(() => {
+    fetchSettings();
+    fetchStats();
+  }, []);
 
-  const cancelEdit = () => {
-    setEditingSetting(null);
-    setEditValue('');
-  };
+  if (loading) {
+    return (
+      <div className="withdraw-container">
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <RefreshCw className="icon-small" style={{ width: '48px', height: '48px', margin: '0 auto 16px', animation: 'spin 1s linear infinite' }} />
+          <p style={{ fontSize: '18px' }}>Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'rewards':
-        return '#f39c12';
-      case 'limits':
-        return '#e74c3c';
-      case 'features':
-        return '#3498db';
-      default:
-        return '#95a5a6';
-    }
-  };
+  const SettingCard = ({ icon: Icon, title, settingKey, value, description, iconColor }) => (
+    <div className="stats-card" style={{ marginBottom: '16px' }}>
+      <div className="stats-header" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Icon className="icon-small" style={{ color: iconColor, width: '24px', height: '24px' }} />
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>{title}</h3>
+            <p style={{ fontSize: '13px', color: '#9ca3af' }}>{description}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+        <input
+          type="number"
+          min="0"
+          value={value}
+          onChange={(e) => handleInputChange(settingKey, e.target.value)}
+          className="search-input"
+          style={{ flex: 1 }}
+          disabled={saving}
+        />
+        <button
+          onClick={() => handleSave(settingKey)}
+          disabled={saving}
+          className="export-button"
+        >
+          <Save className="icon-small inline" />
+          Save
+        </button>
+      </div>
+    </div>
+  );
 
-  const getCategoryBadgeStyle = (category) => ({
-    backgroundColor: getCategoryColor(category),
-    color: 'white',
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '600',
-    display: 'inline-block',
-    fontFamily: 'Poppins, sans-serif'
-  });
+  const StatCard = ({ icon: Icon, title, value, iconColor, subtitle }) => (
+    <div className="stats-card">
+      <div className="stats-header">
+        <span className="stats-label">{title}</span>
+        <Icon className="icon-small" style={{ color: iconColor }} />
+      </div>
+      <p className="stats-value">{value}</p>
+      {subtitle && <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>{subtitle}</p>}
+    </div>
+  );
 
   return (
     <div className="withdraw-container">
-      {/* Notification */}
-      {notification && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            zIndex: 1000,
-            backgroundColor: notification.type === 'success' ? '#27ae60' : '#e74c3c',
-            color: 'white',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontFamily: 'Poppins, sans-serif',
-            animation: 'slideIn 0.3s ease-out'
-          }}
-        >
-          {notification.type === 'success' ? (
-            <CheckCircle size={20} />
-          ) : (
-            <AlertCircle size={20} />
-          )}
-          {notification.message}
-        </div>
-      )}
-
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
-
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <Settings size={32} color="#f39c12" />
-          <h1 className="withdraw-heading" style={{ margin: 0 }}>
-            Admin Settings
-          </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div>
+          <h1 className="withdraw-heading">Admin Dashboard</h1>
+          <p style={{ fontSize: '14px', color: '#9ca3af' }}>Manage platform settings and rewards</p>
         </div>
         <button
-          onClick={initializeSettings}
-          style={{
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontFamily: 'Poppins, sans-serif',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2980b9'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3498db'}
+          onClick={handleSaveAll}
+          disabled={saving}
+          className="export-button"
         >
-          <RefreshCw size={18} />
-          Initialize Defaults
+          {saving ? (
+            <>
+              <RefreshCw className="icon-small inline" style={{ animation: 'spin 1s linear infinite' }} />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="icon-small inline" />
+              Save All
+            </>
+          )}
         </button>
       </div>
 
-      {loading ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '40px',
-          color: '#7f8c8d',
-          fontFamily: 'Poppins, sans-serif'
+      {/* Message Alert */}
+      {message.text && (
+        <div className="error-message" style={{
+          backgroundColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(220, 38, 38, 0.2)',
+          borderColor: message.type === 'success' ? '#22c55e' : '#e74c3c'
         }}>
-          <RefreshCw size={40} className="spin" style={{ marginBottom: '10px' }} />
-          <p>Loading settings...</p>
-          <style>{`
-            .spin {
-              animation: spin 1s linear infinite;
-            }
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
-      ) : settings.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '40px',
-          backgroundColor: '#34495e',
-          borderRadius: '12px',
-          fontFamily: 'Poppins, sans-serif'
-        }}>
-          <AlertCircle size={48} color="#e74c3c" style={{ marginBottom: '15px' }} />
-          <p style={{ color: '#ecf0f1', fontSize: '16px', marginBottom: '20px' }}>
-            No settings found. Initialize default settings to get started.
-          </p>
-          <button
-            onClick={initializeSettings}
-            style={{
-              backgroundColor: '#27ae60',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontFamily: 'Poppins, sans-serif',
-              fontWeight: '600',
-              fontSize: '14px'
-            }}
-          >
-            Initialize Settings
-          </button>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="withdraw-table">
-            <thead>
-              <tr>
-                <th className="withdraw-th" style={{ width: '25%' }}>Setting Name</th>
-                <th className="withdraw-th" style={{ width: '35%' }}>Description</th>
-                <th className="withdraw-th" style={{ width: '12%' }}>Category</th>
-                <th className="withdraw-th" style={{ width: '12%' }}>Value</th>
-                <th className="withdraw-th" style={{ width: '16%' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {settings.map((setting) => (
-                <tr key={setting._id}>
-                  <td className="withdraw-td">
-                    <div style={{
-                      fontWeight: '600',
-                      color: '#ecf0f1',
-                      fontFamily: 'Poppins, sans-serif',
-                      fontSize: '14px'
-                    }}>
-                      {setting.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </div>
-                    <div style={{
-                      fontSize: '11px',
-                      color: '#95a5a6',
-                      marginTop: '4px',
-                      fontFamily: 'Poppins, sans-serif'
-                    }}>
-                      Last updated: {new Date(setting.updatedAt).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="withdraw-td">
-                    <div style={{
-                      color: '#bdc3c7',
-                      fontSize: '13px',
-                      lineHeight: '1.5',
-                      fontFamily: 'Poppins, sans-serif'
-                    }}>
-                      {setting.description}
-                    </div>
-                  </td>
-                  <td className="withdraw-td">
-                    <span style={getCategoryBadgeStyle(setting.category)}>
-                      {setting.category}
-                    </span>
-                  </td>
-                  <td className="withdraw-td">
-                    {editingSetting === setting.key ? (
-                      <input
-                        type="number"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        style={{
-                          backgroundColor: '#34495e',
-                          border: '2px solid #3498db',
-                          borderRadius: '6px',
-                          padding: '8px 12px',
-                          color: '#ecf0f1',
-                          width: '80px',
-                          fontFamily: 'Poppins, sans-serif',
-                          fontSize: '14px',
-                          fontWeight: '600'
-                        }}
-                        autoFocus
-                      />
-                    ) : (
-                      <div style={{
-                        fontSize: '20px',
-                        fontWeight: '700',
-                        color: '#f39c12',
-                        fontFamily: 'Poppins, sans-serif'
-                      }}>
-                        {setting.value}
-                      </div>
-                    )}
-                  </td>
-                  <td className="withdraw-td">
-                    {editingSetting === setting.key ? (
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button
-                          onClick={() => updateSetting(setting.key, editValue)}
-                          style={{
-                            backgroundColor: '#27ae60',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontFamily: 'Poppins, sans-serif',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '13px',
-                            fontWeight: '600'
-                          }}
-                        >
-                          <Save size={14} />
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          style={{
-                            backgroundColor: '#95a5a6',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontFamily: 'Poppins, sans-serif',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '13px',
-                            fontWeight: '600'
-                          }}
-                        >
-                          <X size={14} />
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => startEdit(setting)}
-                        style={{
-                          backgroundColor: '#3498db',
-                          color: 'white',
-                          border: 'none',
-                          padding: '8px 16px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontFamily: 'Poppins, sans-serif',
-                          fontWeight: '600',
-                          fontSize: '13px',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2980b9'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3498db'}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {message.type === 'success' ? (
+            <CheckCircle className="icon-small" style={{ color: '#22c55e' }} />
+          ) : (
+            <XCircle className="error-icon" />
+          )}
+          <p style={{ fontWeight: '500' }}>{message.text}</p>
         </div>
       )}
 
-      {/* Info Card */}
-      {settings.length > 0 && (
-        <div style={{
-          marginTop: '30px',
-          padding: '20px',
-          backgroundColor: '#34495e',
-          borderRadius: '12px',
-          borderLeft: '4px solid #3498db'
-        }}>
-          <h3 style={{
-            color: '#ecf0f1',
-            fontFamily: 'Poppins, sans-serif',
-            fontSize: '16px',
-            marginBottom: '10px',
-            fontWeight: '600'
-          }}>
-            💡 Settings Information
-          </h3>
-          <ul style={{
-            color: '#bdc3c7',
-            fontFamily: 'Poppins, sans-serif',
-            fontSize: '13px',
-            lineHeight: '1.8',
-            paddingLeft: '20px'
-          }}>
-            <li>Changes take effect immediately after saving</li>
-            <li>All reward values are in coins/points</li>
-            <li>Set limits to 0 for unlimited</li>
-            <li>Initialize defaults will not overwrite existing settings</li>
-          </ul>
+      {/* Stats Section */}
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>Platform Statistics</h2>
+        <div className="stats-grid">
+          <StatCard
+            icon={Users}
+            title="Total Users"
+            value={stats.totalUsers.toLocaleString()}
+            iconColor="#3b82f6"
+            subtitle="Registered accounts"
+          />
+          <StatCard
+            icon={TrendingUp}
+            title="Total Referrals"
+            value={stats.totalReferrals.toLocaleString()}
+            iconColor="#a855f7"
+            subtitle="Successful invites"
+          />
+          <StatCard
+            icon={Coins}
+            title="Points Distributed"
+            value={stats.totalPointsDistributed.toLocaleString()}
+            iconColor="#f59e0b"
+            subtitle="Total rewards given"
+          />
         </div>
-      )}
+      </div>
+
+      {/* Settings Section */}
+      <div>
+        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>Reward Settings</h2>
+        
+        <SettingCard
+          icon={Gift}
+          title="Referral Reward"
+          settingKey="referralPoints"
+          value={settings.referralPoints}
+          description="Points earned when someone signs up using invite code"
+          iconColor="#ef4444"
+        />
+        
+        <SettingCard
+          icon={Users}
+          title="Signup Bonus"
+          settingKey="signupBonus"
+          value={settings.signupBonus}
+          description="Points given to new users upon registration"
+          iconColor="#10b981"
+        />
+        
+        <SettingCard
+          icon={DollarSign}
+          title="Daily Login Bonus"
+          settingKey="dailyLoginBonus"
+          value={settings.dailyLoginBonus}
+          description="Points earned for daily app visits"
+          iconColor="#3b82f6"
+        />
+        
+        <SettingCard
+          icon={TrendingUp}
+          title="Video Upload Bonus"
+          settingKey="videoUploadBonus"
+          value={settings.videoUploadBonus}
+          description="Points earned for uploading content"
+          iconColor="#a855f7"
+        />
+        
+        <SettingCard
+          icon={Coins}
+          title="Stream View Bonus"
+          settingKey="streamViewBonus"
+          value={settings.streamViewBonus}
+          description="Points earned per stream view"
+          iconColor="#f59e0b"
+        />
+      </div>
+
+      {/* Info Box */}
+      <div className="stats-card" style={{ marginTop: '32px', backgroundColor: '#2d3748' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <AlertCircle className="icon-small" style={{ color: '#f59e0b', width: '24px', height: '24px', flexShrink: 0, marginTop: '4px' }} />
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px', color: '#f59e0b' }}>Important Notes</h3>
+            <ul style={{ fontSize: '14px', color: '#9ca3af', lineHeight: '1.8', listStyle: 'none', padding: 0 }}>
+              <li>• Changes take effect immediately for new transactions</li>
+              <li>• Existing user points will not be affected</li>
+              <li>• Monitor the impact of changes on user engagement</li>
+              <li>• Consider balanced reward values to maintain platform economy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
