@@ -8,9 +8,8 @@ const AdminSettingsPage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [stats, setStats] = useState({
     totalUsers: 0,
-    verifiedUsers: 0,
-    totalInvites: 0,
-    currentReferralPoints: 10
+    totalReferrals: 0,
+    totalPointsDistributed: 0
   });
 
   const [settings, setSettings] = useState({
@@ -44,16 +43,12 @@ const AdminSettingsPage = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          const settingsObj = {};
-          result.data.forEach(setting => {
-            settingsObj[setting.key] = setting.value;
-          });
-          setSettings(prev => ({ ...prev, ...settingsObj }));
-        }
-      } else {
-        console.error('Failed to fetch settings');
+        const data = await response.json();
+        const settingsObj = {};
+        data.forEach(setting => {
+          settingsObj[setting.key] = setting.value;
+        });
+        setSettings(prev => ({ ...prev, ...settingsObj }));
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -70,10 +65,8 @@ const AdminSettingsPage = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          setStats(result.data);
-        }
+        const data = await response.json();
+        setStats(data);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -86,24 +79,14 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${API_BASE_URL}/admin/settings/${key}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ 
-          value: Number(value),
-          description: getSettingDescription(key)
-        })
+        body: JSON.stringify({ value: Number(value) })
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          showMessage('success', `${formatSettingName(key)} updated successfully!`);
-          await fetchSettings();
-          await fetchStats(); // Refresh stats after update
-        } else {
-          showMessage('error', result.msg || 'Failed to update setting');
-        }
+        showMessage('success', `${key} updated successfully!`);
+        await fetchSettings();
       } else {
-        const error = await response.json();
-        showMessage('error', error.msg || 'Failed to update setting');
+        showMessage('error', 'Failed to update setting');
       }
     } catch (error) {
       console.error('Error updating setting:', error);
@@ -113,82 +96,23 @@ const AdminSettingsPage = () => {
     }
   };
 
-  const getSettingDescription = (key) => {
-    const descriptions = {
-      referralPoints: 'Points awarded per successful referral',
-      signupBonus: 'Points awarded on user signup',
-      dailyLoginBonus: 'Points earned for daily app visits',
-      videoUploadBonus: 'Points earned for uploading content',
-      streamViewBonus: 'Points earned per stream view'
-    };
-    return descriptions[key] || `${key} setting`;
-  };
-
-  const formatSettingName = (key) => {
-    return key.replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .trim();
-  };
-
   const handleInputChange = (key, value) => {
-    // Only allow positive numbers
-    if (value === '' || Number(value) >= 0) {
-      setSettings(prev => ({
-        ...prev,
-        [key]: value
-      }));
-    }
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   const handleSave = async (key) => {
-    const value = settings[key];
-    if (value === '' || Number(value) < 0) {
-      showMessage('error', 'Please enter a valid positive number');
-      return;
-    }
-    await updateSetting(key, value);
+    await updateSetting(key, settings[key]);
   };
 
   const handleSaveAll = async () => {
     setSaving(true);
-    let successCount = 0;
-    let errorCount = 0;
-
     for (const [key, value] of Object.entries(settings)) {
-      if (value !== '' && Number(value) >= 0) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/admin/settings/${key}`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ 
-              value: Number(value),
-              description: getSettingDescription(key)
-            })
-          });
-
-          if (response.ok) {
-            successCount++;
-          } else {
-            errorCount++;
-          }
-        } catch (error) {
-          errorCount++;
-        }
-      }
+      await updateSetting(key, value);
     }
-
     setSaving(false);
-    
-    if (errorCount === 0) {
-      showMessage('success', 'All settings updated successfully!');
-    } else if (successCount > 0) {
-      showMessage('warning', `${successCount} settings updated, ${errorCount} failed`);
-    } else {
-      showMessage('error', 'Failed to update settings');
-    }
-
-    await fetchSettings();
-    await fetchStats();
   };
 
   useEffect(() => {
@@ -228,16 +152,11 @@ const AdminSettingsPage = () => {
           className="search-input"
           style={{ flex: 1 }}
           disabled={saving}
-          placeholder="Enter points"
         />
         <button
           onClick={() => handleSave(settingKey)}
-          disabled={saving || value === '' || Number(value) < 0}
+          disabled={saving}
           className="export-button"
-          style={{
-            opacity: (saving || value === '' || Number(value) < 0) ? 0.5 : 1,
-            cursor: (saving || value === '' || Number(value) < 0) ? 'not-allowed' : 'pointer'
-          }}
         >
           <Save className="icon-small inline" />
           Save
@@ -268,10 +187,6 @@ const AdminSettingsPage = () => {
           onClick={handleSaveAll}
           disabled={saving}
           className="export-button"
-          style={{
-            opacity: saving ? 0.7 : 1,
-            cursor: saving ? 'not-allowed' : 'pointer'
-          }}
         >
           {saving ? (
             <>
@@ -291,8 +206,7 @@ const AdminSettingsPage = () => {
       {message.text && (
         <div className="error-message" style={{
           backgroundColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(220, 38, 38, 0.2)',
-          borderColor: message.type === 'success' ? '#22c55e' : '#e74c3c',
-          marginBottom: '24px'
+          borderColor: message.type === 'success' ? '#22c55e' : '#e74c3c'
         }}>
           {message.type === 'success' ? (
             <CheckCircle className="icon-small" style={{ color: '#22c55e' }} />
@@ -310,30 +224,23 @@ const AdminSettingsPage = () => {
           <StatCard
             icon={Users}
             title="Total Users"
-            value={stats.totalUsers?.toLocaleString() || '0'}
+            value={stats.totalUsers.toLocaleString()}
             iconColor="#3b82f6"
             subtitle="Registered accounts"
           />
           <StatCard
-            icon={CheckCircle}
-            title="Verified Users"
-            value={stats.verifiedUsers?.toLocaleString() || '0'}
-            iconColor="#10b981"
-            subtitle="Verified accounts"
-          />
-          <StatCard
             icon={TrendingUp}
-            title="Total Invites"
-            value={stats.totalInvites?.toLocaleString() || '0'}
+            title="Total Referrals"
+            value={stats.totalReferrals.toLocaleString()}
             iconColor="#a855f7"
-            subtitle="Successful referrals"
+            subtitle="Successful invites"
           />
           <StatCard
-            icon={Gift}
-            title="Current Referral Points"
-            value={stats.currentReferralPoints?.toLocaleString() || '10'}
+            icon={Coins}
+            title="Points Distributed"
+            value={stats.totalPointsDistributed.toLocaleString()}
             iconColor="#f59e0b"
-            subtitle="Points per referral"
+            subtitle="Total rewards given"
           />
         </div>
       </div>
@@ -397,10 +304,8 @@ const AdminSettingsPage = () => {
             <ul style={{ fontSize: '14px', color: '#9ca3af', lineHeight: '1.8', listStyle: 'none', padding: 0 }}>
               <li>• Changes take effect immediately for new transactions</li>
               <li>• Existing user points will not be affected</li>
-              <li>• All values must be positive numbers (0 or greater)</li>
               <li>• Monitor the impact of changes on user engagement</li>
               <li>• Consider balanced reward values to maintain platform economy</li>
-              <li>• Settings are stored in the database and persist across sessions</li>
             </ul>
           </div>
         </div>
