@@ -65,7 +65,7 @@ const AdminSettingsPage = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/dashboard/stats`, {
+      const response = await fetch(`${API_BASE_URL}/admin/stats`, {
         headers: getAuthHeaders()
       });
 
