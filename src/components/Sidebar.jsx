@@ -1,7 +1,6 @@
 import {
   Home,
   Users,
-  Settings,
   ChevronDown,
   ChevronUp,
   LayoutDashboard,
@@ -86,7 +85,7 @@ export default function Sidebar() {
                 </ul>
               )}
             </li>
-          </ul>
+s          </ul>
         </nav>
 
         {/* Logout Button */}
