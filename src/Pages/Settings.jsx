@@ -15,9 +15,8 @@ const AdminSettingsPage = () => {
   const [settings, setSettings] = useState({
     referralPoints: 10,
     signupBonus: 5,
-    dailyLoginBonus: 1,
-    videoUploadBonus: 2,
-    streamViewBonus: 1
+    // dailyLoginBonus: 1,
+    // streamViewBonus: 1
   });
 
   const API_BASE_URL = 'https://streammall-backend-73a4b072d5eb.herokuapp.com/api';
@@ -267,32 +266,25 @@ const AdminSettingsPage = () => {
           iconColor="#10b981"
         />
         
-        <SettingCard
+        {/* <SettingCard
           icon={DollarSign}
           title="Daily Login Bonus"
           settingKey="dailyLoginBonus"
           value={settings.dailyLoginBonus}
           description="Points earned for daily app visits"
           iconColor="#3b82f6"
-        />
+        /> */}
         
-        <SettingCard
-          icon={TrendingUp}
-          title="Video Upload Bonus"
-          settingKey="videoUploadBonus"
-          value={settings.videoUploadBonus}
-          description="Points earned for uploading content"
-          iconColor="#a855f7"
-        />
+       
         
-        <SettingCard
+        {/* <SettingCard
           icon={Coins}
           title="Stream View Bonus"
           settingKey="streamViewBonus"
           value={settings.streamViewBonus}
           description="Points earned per stream view"
           iconColor="#f59e0b"
-        />
+        /> */}
       </div>
 
       {/* Info Box */}
