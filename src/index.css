@@ -324,3 +324,14 @@ a {
     font-size: 0.85rem;
   }
 }
+
+
+.filter-recharge-buttons {
+  display: flex;
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  margin-top: 10px;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, Info } from "lucide-react";
 
 export default function RechargeAdmin() {
   const [recharges, setRecharges] = useState([]);
@@ -8,6 +8,7 @@ export default function RechargeAdmin() {
   const [pagination, setPagination] = useState({});
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // all, pending, approved, rejected
 
   useEffect(() => {
     fetchRecharges();
@@ -99,7 +100,7 @@ export default function RechargeAdmin() {
     }
   };
 
-  // 🔹 Show payment details based on method
+  // Show payment details based on method
   const renderPaymentDetails = (recharge) => {
     if (recharge.method === "bank") {
       return (
@@ -132,7 +133,7 @@ export default function RechargeAdmin() {
         <div className="text-sm">
           <div>
             <strong>Wallet:</strong>{" "}
-            <span className="font-mono">
+            <span className="font-mono text-xs">
               {recharge.details?.walletAddress || "N/A"}
             </span>
           </div>
@@ -146,7 +147,7 @@ export default function RechargeAdmin() {
             <strong>Tx Hash:</strong>{" "}
             {recharge.details?.transactionHash ? (
               <a
-                href={recharge.blockchainExplorerUrl}
+                href={`https://tronscan.org/#/transaction/${recharge.details.transactionHash}`}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
@@ -157,14 +158,11 @@ export default function RechargeAdmin() {
               "N/A"
             )}
           </div>
-          <div>
-            <strong>Network:</strong>{" "}
-            {recharge.details?.blockchainNetwork || "N/A"}
-          </div>
-          <div>
-            <strong>Contract:</strong>{" "}
-            {recharge.details?.contractAddress || "N/A"}
-          </div>
+          {recharge.metadata?.autoApproved && (
+            <div className="mt-2 text-green-600 font-medium">
+              ✅ Auto-approved
+            </div>
+          )}
         </div>
       );
     }
@@ -172,14 +170,69 @@ export default function RechargeAdmin() {
     return <span className="text-gray-400">N/A</span>;
   };
 
+  // Filter recharges
+  const filteredRecharges = recharges.filter(r => {
+    if (filterStatus === "all") return true;
+    return r.status === filterStatus;
+  });
+
+  // Separate pending bank transfers (require action)
+  const pendingBankTransfers = filteredRecharges.filter(
+    r => r.status === "pending" && r.method === "bank"
+  );
+
   return (
     <div className="withdraw-container">
       <h1 className="withdraw-heading">Recharge Requests</h1>
 
+      {/* Info Banner */}
+      <div className="mb-4 bg-blue-900/50 border border-blue-500 rounded-lg p-4 flex items-start space-x-2">
+        <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+        <div className="text-blue-200 text-sm">
+          <strong>Note:</strong> USDT payments are automatically verified and approved. 
+          Bank transfers require manual review and approval.
+        </div>
+      </div>
+
+      {/* Pending Bank Transfers Alert */}
+      {pendingBankTransfers.length > 0 && (
+        <div className="mb-4 bg-yellow-900/50 border border-yellow-500 rounded-lg p-4 flex items-center space-x-2">
+          <AlertCircle className="w-5 h-5 text-yellow-400" />
+          <p className="text-yellow-200">
+            <strong>{pendingBankTransfers.length}</strong> bank transfer{pendingBankTransfers.length > 1 ? 's' : ''} 
+            {' '}awaiting approval
+          </p>
+        </div>
+      )}
+
+      {/* Filter Tabs */}
+      <div className="filter-recharge-buttons" style={{gap:10}}>
+        {['all', 'pending', 'approved', 'rejected'].map(status => (
+       
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filterStatus === status
+                ? 'filter-button active'
+                : 'filter-button'
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status === 'pending' && pendingBankTransfers.length > 0 && (
+              <span className="ml-2 bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs">
+                {pendingBankTransfers.length}
+              </span>
+            )}
+          </button>
+        
+        ))}
+      </div>
+
       {loading ? (
         <p>Loading...</p>
-      ) : recharges.length === 0 ? (
-        <p>No recharge requests.</p>
+      ) : filteredRecharges.length === 0 ? (
+        <p>No {filterStatus !== 'all' ? filterStatus : ''} recharge requests.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="withdraw-table">
@@ -197,14 +250,22 @@ export default function RechargeAdmin() {
               </tr>
             </thead>
             <tbody>
-              {recharges.map((r) => (
-                <tr key={r._id}>
+              {filteredRecharges.map((r) => (
+                <tr key={r._id} className={r.status === "pending" && r.method === "bank" ? "bg-yellow-900/20" : ""}>
                   <td className="withdraw-td">
                     {r.userId?.username || "N/A"}
                     <br />
                     <small>{r.userId?.email}</small>
                   </td>
-                  <td className="withdraw-td">{r.method}</td>
+                  <td className="withdraw-td">
+                    <span className="capitalize">{r.method}</span>
+                    {r.method === "usdt" && (
+                      <div className="text-xs text-green-400 mt-1">Auto-approved</div>
+                    )}
+                    {r.method === "bank" && r.status === "pending" && (
+                      <div className="text-xs text-yellow-400 mt-1">Needs review</div>
+                    )}
+                  </td>
                   <td className="withdraw-td">{renderPaymentDetails(r)}</td>
                   <td className="withdraw-td">
                     {r.pointsToAdd?.toLocaleString() || 0}
@@ -215,20 +276,34 @@ export default function RechargeAdmin() {
                   </td>
                   <td className="withdraw-td capitalize">
                     {r.status === "pending" ? (
-                      <span className="text-yellow-400">{r.status}</span>
+                      <span className="text-yellow-400 flex items-center gap-1">
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                        {r.status}
+                      </span>
                     ) : r.status === "approved" ? (
-                      <span className="text-green-400">{r.status}</span>
+                      <span className="text-green-400 flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        {r.status}
+                      </span>
                     ) : r.status === "rejected" ? (
-                      <span className="text-red-400">{r.status}</span>
+                      <span className="text-red-400 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {r.status}
+                      </span>
                     ) : (
                       <span className="text-gray-400">{r.status}</span>
                     )}
                   </td>
                   <td className="withdraw-td">
                     {new Date(r.requestedAt).toLocaleString()}
+                    {r.approvedAt && (
+                      <div className="text-xs text-green-400 mt-1">
+                        Approved: {new Date(r.approvedAt).toLocaleString()}
+                      </div>
+                    )}
                   </td>
                   <td className="withdraw-td">
-                    {r.status === "pending" ? (
+                    {r.status === "pending" && r.method === "bank" ? (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(r._id)}
@@ -260,6 +335,8 @@ export default function RechargeAdmin() {
                           Reject
                         </button>
                       </div>
+                    ) : r.status === "pending" && r.method === "usdt" ? (
+                      <span className="text-blue-400 text-sm">Auto-processing...</span>
                     ) : (
                       <span className="text-gray-500">—</span>
                     )}
@@ -269,7 +346,7 @@ export default function RechargeAdmin() {
             </tbody>
           </table>
 
-          {/* 🔹 Error Alert */}
+          {/* Error Alert */}
           {error && (
             <div className="mt-4 bg-red-900/50 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
               <AlertCircle className="w-5 h-5 text-red-400" />
@@ -277,7 +354,7 @@ export default function RechargeAdmin() {
             </div>
           )}
 
-          {/* 🔹 Success Alert */}
+          {/* Success Alert */}
           {success && (
             <div className="mt-4 bg-green-900/50 border border-green-500 rounded-lg p-4 flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-green-400" />
@@ -288,7 +365,8 @@ export default function RechargeAdmin() {
           {/* Pagination Info */}
           {pagination && pagination.total && (
             <div className="mt-4 text-sm text-gray-600">
-              Showing {recharges.length} of {pagination.total} requests
+              Showing {filteredRecharges.length} of {pagination.total} requests
+              {filterStatus !== 'all' && ` (filtered by ${filterStatus})`}
             </div>
           )}
         </div>

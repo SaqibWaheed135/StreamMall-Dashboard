@@ -9,9 +9,9 @@ export default function UsersList() {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+   const fetchUsers = async () => {
     try {
-      const res = await axios.get("https://streammall-backend-73a4b072d5eb.herokuapp.com/api/auth/getUsers");
+      const res = await axios.get("https://streammall-backend-73a4b072d5eb.herokuapp.com/api/users/getUsers");
       const usersData = Array.isArray(res.data.data) ? res.data.data : res.data;
       setUsers(usersData);
     } catch (err) {
@@ -21,7 +21,6 @@ export default function UsersList() {
       setLoading(false);
     }
   };
-
   const deleteUser = async (userId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this user?");
     if (!confirmDelete) return;
