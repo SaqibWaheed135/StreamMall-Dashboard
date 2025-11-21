@@ -11,7 +11,7 @@ export default function UsersList() {
 
    const fetchUsers = async () => {
     try {
-      const res = await axios.get("https://streammall-backend-73a4b072d5eb.herokuapp.com/api/users/getUsers");
+      const res = await axios.get("https://streammall-backend-73a4b072d5eb.herokuapp.com/api/auth/getUsers");
       const usersData = Array.isArray(res.data.data) ? res.data.data : res.data;
       setUsers(usersData);
     } catch (err) {
